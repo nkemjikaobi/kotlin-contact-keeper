@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ContactManager()
+                    ContactManager(context =  this)
                 }
             }
         }
@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ContactManager() {
+fun ContactManager(context: ComponentActivity) {
     var contactName by remember { mutableStateOf("") }
     var contactNumber by remember { mutableStateOf("") }
     var contacts by remember { mutableStateOf(listOf<String>()) }
@@ -82,7 +82,7 @@ fun ContactManager() {
             }
 
             Button(
-                onClick = { },
+                onClick = { contacts = fetchContacts(context) },
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text("Fetch Contacts")
@@ -132,9 +132,29 @@ fun ContactManager() {
 //    return contacts
 //}
 
+@SuppressLint("Range")
 //Method to fetch contacts
-fun fetchContacts(): List<String> {
+fun fetchContacts(context: ComponentActivity): List<String> {
+    val contactList = mutableListOf<String>()
+    val cursor = context.contentResolver.query(
+        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        null,
+        null,
+        null,
+        null
+    )
 
+    cursor?.use {
+        while (it.moveToNext()) {
+            val name =
+                it.getString(it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+            val number =
+                it.getString(it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+            contactList.add("$name - $number")
+        }
+    }
+
+    return contactList
 }
 
 @Composable
@@ -149,6 +169,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     MAPD721A2NkemjikaObiTheme {
-        ContactManager()
+        ContactManager(context =  ComponentActivity())
     }
 }
