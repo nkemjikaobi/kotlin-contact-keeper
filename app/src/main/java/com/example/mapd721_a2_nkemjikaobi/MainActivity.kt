@@ -1,15 +1,19 @@
 package com.example.mapd721_a2_nkemjikaobi
 
 import android.annotation.SuppressLint
+import android.content.ContentProviderOperation
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -60,6 +64,7 @@ fun ContactManager(context: ComponentActivity) {
     var contactName by remember { mutableStateOf("") }
     var contactNumber by remember { mutableStateOf("") }
     var contacts by remember { mutableStateOf(listOf<String>()) }
+    var searchQuery by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
 
@@ -92,7 +97,7 @@ fun ContactManager(context: ComponentActivity) {
             value = contactName,
             onValueChange = { contactName = it },
             label = { Text("Contact Name") },
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
 //            isError = checkIfFieldIsEmpty  contactName.isBlank()
         )
 
@@ -100,7 +105,7 @@ fun ContactManager(context: ComponentActivity) {
             value = contactNumber,
             onValueChange = { contactNumber = it },
             label = { Text("Contact Number") },
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp).fillMaxWidth()
         )
 
         Row {
@@ -109,21 +114,17 @@ fun ContactManager(context: ComponentActivity) {
             Button(
                 onClick = {
                     if (contactName.isNotBlank() && contactNumber.isNotBlank()) {
-                        Log.d("", "ran this method")
                         val success = addContact(context, contactName, contactNumber)
                         if (success) {
-                            Log.d("", "it was successful")
                             // Clear input fields after successful addition
                             contactName = ""
                             contactNumber = ""
                             contacts = fetchContacts(context)
                         } else {
-                            Log.d("", "it failed")
-                            // Handle failure to add contact
+                            Toast.makeText(context, "An error occurred while adding contact", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Log.d("", "fields were empty")
-                        // Handle empty input fields
+                        Toast.makeText(context, "All fields are required", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.padding(16.dp)
@@ -147,9 +148,21 @@ fun ContactManager(context: ComponentActivity) {
             fontSize = 24.sp,
         )
 
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search Contacts") },
+            modifier = Modifier.padding(16.dp).fillMaxWidth()
+        )
+
+        // Filtered contacts based on search query
+        val filteredContacts = contacts.filter {
+            it.contains(searchQuery, ignoreCase = true)
+        }
+
         //List of contacts
         LazyColumn(modifier = Modifier.weight(1f)) {
-            items(contacts) { contact ->
+            items(filteredContacts) { contact ->
                 Text(text = contact, modifier = Modifier.padding(16.dp))
             }
         }
@@ -166,7 +179,7 @@ fun fetchContacts(context: ComponentActivity): List<String> {
         null,
         null,
         null,
-        null
+        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
     )
 
     cursor?.use {
@@ -182,29 +195,38 @@ fun fetchContacts(context: ComponentActivity): List<String> {
     return contactList
 }
 
+fun addContact(context: ComponentActivity, customerName: String, customerNumber: String): Boolean {
+    val ops = ArrayList<ContentProviderOperation>()
 
-fun addContact(context: ComponentActivity, name: String, number: String): Boolean {
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+        .build())
 
-    val intent = Intent(Intent.ACTION_INSERT).apply {
-        type = ContactsContract.Contacts.CONTENT_TYPE
-        putExtra(ContactsContract.Intents.Insert.NAME, name)
-        putExtra(ContactsContract.Intents.Insert.PHONE, number)
-    }
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
+    // Contact Name
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, customerName)
+        .build())
+
+    // Phone Number
+    ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, customerNumber)
+        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+        .build())
+
+    try {
+        context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+        Toast.makeText(context, "$customerName has been added to your contacts", Toast.LENGTH_SHORT).show()
         return true
-    } else {
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "Failed to add $customerName to your contacts", Toast.LENGTH_SHORT).show()
         return false
     }
-
-//    val values = ContentValues().apply{
-//        put(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, name)
-//        put(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
-//    }
-//
-//    val uri = context.contentResolver.insert(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, values)
-//    return uri != null
-
 }
 
 @Preview(showBackground = true)
