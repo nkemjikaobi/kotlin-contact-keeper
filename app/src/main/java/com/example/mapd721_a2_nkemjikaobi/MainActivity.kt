@@ -106,31 +106,6 @@ fun ContactManager(context: ComponentActivity) {
     }
 }
 
-//@SuppressLint("Range")
-//fun loadContacts(context: ComponentActivity): List<Contact> {
-//    val contacts = mutableListOf<Contact>()
-//
-//    // Use the content resolver to query contacts
-//    context.contentResolver.query(
-//        ContactsContract.Contacts.CONTENT_URI,
-//        arrayOf(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY),
-//        null,
-//        null,
-//        ContactsContract.Contacts.DISPLAY_NAME_PRIMARY
-//    )?.use { cursor ->
-//        // Check if the cursor has data
-//        if (cursor.moveToFirst()) {
-//            do {
-//                // Retrieve display name from the cursor and add to the list
-//                val displayName =
-//                    cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY))
-//                contacts.add(Contact(displayName))
-//            } while (cursor.moveToNext())
-//        }
-//    }
-//
-//    return contacts
-//}
 
 @SuppressLint("Range")
 //Method to fetch contacts
