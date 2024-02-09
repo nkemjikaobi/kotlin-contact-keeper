@@ -1,8 +1,10 @@
 package com.example.mapd721_a2_nkemjikaobi
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -31,6 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mapd721_a2_nkemjikaobi.ui.theme.MAPD721A2NkemjikaObiTheme
 
+/**
+ * Student Name - Nkemjika Obi
+ * Student Number - 301275091
+ */
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +48,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ContactManager(context =  this)
+                    ContactManager(context = this)
                 }
             }
         }
@@ -56,12 +63,37 @@ fun ContactManager(context: ComponentActivity) {
 
     Column(modifier = Modifier.fillMaxSize()) {
 
+        Text(
+            text = "Nkemjika Obi",
+            modifier = Modifier.padding(
+                start = 16.dp,
+                top = 10.dp,
+                end = 16.dp,
+                bottom = 10.dp
+            ),
+            textDecoration = TextDecoration.Underline,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+        )
+        Text(
+            text = "301275091",
+            modifier = Modifier.padding(
+                start = 16.dp,
+                top = 0.dp,
+                end = 16.dp,
+                bottom = 20.dp
+            ),
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+        )
+
         //Text fields
         OutlinedTextField(
             value = contactName,
             onValueChange = { contactName = it },
             label = { Text("Contact Name") },
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+//            isError = checkIfFieldIsEmpty  contactName.isBlank()
         )
 
         OutlinedTextField(
@@ -75,7 +107,25 @@ fun ContactManager(context: ComponentActivity) {
 
             //Buttons
             Button(
-                onClick = { },
+                onClick = {
+                    if (contactName.isNotBlank() && contactNumber.isNotBlank()) {
+                        Log.d("", "ran this method")
+                        val success = addContact(context, contactName, contactNumber)
+                        if (success) {
+                            Log.d("", "it was successful")
+                            // Clear input fields after successful addition
+                            contactName = ""
+                            contactNumber = ""
+                            contacts = fetchContacts(context)
+                        } else {
+                            Log.d("", "it failed")
+                            // Handle failure to add contact
+                        }
+                    } else {
+                        Log.d("", "fields were empty")
+                        // Handle empty input fields
+                    }
+                },
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text("Add Contact")
@@ -132,18 +182,35 @@ fun fetchContacts(context: ComponentActivity): List<String> {
     return contactList
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+
+fun addContact(context: ComponentActivity, name: String, number: String): Boolean {
+
+    val intent = Intent(Intent.ACTION_INSERT).apply {
+        type = ContactsContract.Contacts.CONTENT_TYPE
+        putExtra(ContactsContract.Intents.Insert.NAME, name)
+        putExtra(ContactsContract.Intents.Insert.PHONE, number)
+    }
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+        return true
+    } else {
+        return false
+    }
+
+//    val values = ContentValues().apply{
+//        put(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, name)
+//        put(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+//    }
+//
+//    val uri = context.contentResolver.insert(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, values)
+//    return uri != null
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     MAPD721A2NkemjikaObiTheme {
-        ContactManager(context =  ComponentActivity())
+        ContactManager(context = ComponentActivity())
     }
 }
