@@ -1,12 +1,16 @@
 package com.example.mapd721_a2_nkemjikaobi
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.provider.ContactsContract
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -18,8 +22,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.mapd721_a2_nkemjikaobi.ui.theme.MAPD721A2NkemjikaObiTheme
 
 class MainActivity : ComponentActivity() {
@@ -46,6 +55,8 @@ fun ContactManager() {
     var contacts by remember { mutableStateOf(listOf<String>()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
+
+        //Text fields
         OutlinedTextField(
             value = contactName,
             onValueChange = { contactName = it },
@@ -60,22 +71,70 @@ fun ContactManager() {
             modifier = Modifier.padding(16.dp)
         )
 
-       Row{
-           Button(
-               onClick = {  },
-               modifier = Modifier.padding(16.dp)
-           ) {
-               Text("Add Contact")
-           }
+        Row {
 
-           Button(
-               onClick = {  },
-               modifier = Modifier.padding(16.dp)
-           ) {
-               Text("Fetch Contacts")
-           }
-       }
+            //Buttons
+            Button(
+                onClick = { },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Add Contact")
+            }
+
+            Button(
+                onClick = { },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Fetch Contacts")
+            }
+        }
+
+        Text(
+            text = "Contacts",
+            modifier = Modifier.padding(16.dp),
+            textDecoration = TextDecoration.Underline,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+        )
+
+        //List of contacts
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(contacts) { contact ->
+                Text(text = contact, modifier = Modifier.padding(16.dp))
+            }
+        }
     }
+}
+
+//@SuppressLint("Range")
+//fun loadContacts(context: ComponentActivity): List<Contact> {
+//    val contacts = mutableListOf<Contact>()
+//
+//    // Use the content resolver to query contacts
+//    context.contentResolver.query(
+//        ContactsContract.Contacts.CONTENT_URI,
+//        arrayOf(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY),
+//        null,
+//        null,
+//        ContactsContract.Contacts.DISPLAY_NAME_PRIMARY
+//    )?.use { cursor ->
+//        // Check if the cursor has data
+//        if (cursor.moveToFirst()) {
+//            do {
+//                // Retrieve display name from the cursor and add to the list
+//                val displayName =
+//                    cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY))
+//                contacts.add(Contact(displayName))
+//            } while (cursor.moveToNext())
+//        }
+//    }
+//
+//    return contacts
+//}
+
+//Method to fetch contacts
+fun fetchContacts(): List<String> {
+
 }
 
 @Composable
