@@ -47,8 +47,16 @@ fun ContactManager() {
         OutlinedTextField(
             value = contactName,
             onValueChange = { contactName = it },
-            label = { Text("Contact Name") })
+            label = { Text("Contact Name") },
+            modifier = Modifier.padding(16.dp)
+        )
 
+        OutlinedTextField(
+            value = contactNumber,
+            onValueChange = { contactNumber = it },
+            label = { Text("Contact Number") },
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
 
